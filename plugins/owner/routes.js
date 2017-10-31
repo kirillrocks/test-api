@@ -1,6 +1,6 @@
 const userController = require('./handler');
 
-// API Server Endpoints
+// API Server Endpoints for owner
 module.exports = [
 
     {method: 'POST', path: '/owner/login', config: userController.login},

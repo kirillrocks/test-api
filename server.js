@@ -22,7 +22,7 @@ server.connection({
 });
 
 // register socket.io
-server.register(require('./plugins/socket.io'), (err) => {
+server.register(require('./plugins/socket.io'), function(err) {
 
     if (err) {
         throw err;
@@ -42,7 +42,7 @@ server.route({
 });
 
 // server start
-server.start((err) => {
+server.start(function(err) {
 
     if (err) {
         console.error(err);

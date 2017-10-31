@@ -6,6 +6,109 @@ const Guest = require('../guest/model').Guest;
 
 exports.newChat = function(data, callback) {
 
+	// // find owner for domain
+	// Owner.findOne({
+	// 	domain: data.domain,
+	// 	level: 'owner',
+	// }).exec().then(function(owner) {
+	//
+	// 	if (owner) {
+	//
+	// 		return Guest.findOne({
+	// 			email: data.email,
+	// 		}).exec().then(function(guest) {
+	//
+	// 			return Chat.findOne({
+	// 				owner: owner._id,
+	// 				guest: guest._id,
+	// 				domain: data.domain,
+	// 			}).exec().then(function(chat) {
+	//
+	// 				if (!chat) {
+	//
+	// 					// create new chat
+	// 					Chat.create({
+	// 						owner: owner._id,
+	// 						guest: guest._id,
+	// 						domain: data.domain,
+	// 						status: 'unreadable',
+	// 					}).exec().then(function(chat) {
+	//
+	// 						let guestToken = Crypto.randomBytes(16).toString('hex');
+	//
+	// 						// if guest not exist, create it
+	// 						if (!guest) {
+	//
+	// 							Guest.create({
+	// 								email: data.email,
+	// 								name: data.name,
+	// 								token: guestToken,
+	// 							}).exec().then(function(guest) {
+	//
+	// 								Guest.findByIdAndUpdate(
+	// 									guest._id,
+	// 									{
+	// 										$push: {'chats': {_id: chat, domain: data.domain}},
+	// 									},
+	// 									{safe: true, upsert: true, new: true}
+	// 								);
+	//
+	// 								Owner.findByIdAndUpdate(
+	// 									owner._id,
+	// 									{$push: {'chats': chat}},
+	// 									{safe: true, upsert: true, new: true}
+	// 								);
+	//
+	// 								callback({
+	// 									guestToken: guestToken,
+	// 									chatId: chat._id,
+	// 									guestId: guest._id,
+	// 								});
+	// 							});
+	// 						} else {
+	//
+	// 							// add created chat to guest
+	// 							Guest.findByIdAndUpdate(
+	// 								guest._id,
+	// 								{
+	// 									$push: {'chats': {_id: chat, domain: data.domain}},
+	// 									token: guestToken
+	// 								},
+	// 								{safe: true, upsert: true, new: true}
+	// 							);
+	//
+	// 							// add created chat to owner
+	// 							Owner.findByIdAndUpdate(
+	// 								owner._id,
+	// 								{$push: {'chats': chat}},
+	// 								{safe: true, upsert: true, new: true}
+	// 							);
+	//
+	// 							callback({
+	// 								guestToken: guestToken,
+	// 								chatId: chat._id,
+	// 								guestId: guest._id,
+	// 							});
+	// 						}
+	// 					});
+	// 				} else {
+	//
+	// 					// return exist chat and guest token
+	// 					let guestToken = Crypto.randomBytes(16).toString('hex');
+	//
+	// 					guest.set({token: guestToken}).save();
+	//
+	// 					callback({
+	// 						guestToken: guestToken,
+	// 						chatId: chat._id,
+	// 						guestId: guest._id,
+	// 					});
+	// 				}
+	// 			});
+	// 		});
+	// 	}
+	// });
+
     // find domain owner
     Owner.findOne({
         domain: data.domain,
@@ -209,55 +312,56 @@ exports.newChat = function(data, callback) {
 // add new message
 exports.newMessage = function(data, callback) {
 
+    // try find owner
     Owner.findOne({
         'token': data.token,
         'chats._id': data.chatId,
     }).exec().then(function(owner) {
 
+	    // try find guest
         return Guest.findOne({
             'token': data.token,
             'chats._id': data.chatId,
         }).exec().then(function(guest) {
 
-            return {owner: owner, guest: guest};
-        }).then(function(result) {
+            // add message to chat by guest or chat owner
+	        Chat.update({_id: data.chatId},
+		        {
+			        $push: {
+				        'messages': {
+					        from: owner ? owner._id : guest._id,
+					        message: data.message,
+				        },
+			        },
+		        }).exec().then(function() {
 
-            Chat.update({_id: data.chatId},
-                {
-                    $push: {
-                        'messages': {
-                            from: result.owner ? result.owner._id : result.guest._id,
-                            message: data.message,
-                        },
-                    },
-                }).exec().then(function() {
+		        // set chat is active when owner reply
+		        if (result.owner) {
+			        Chat.findById(data.chatId, function(err, chat) {
+				        chat.set({status: 'active'}).save();
+			        });
+		        }
 
-                // set chat is active when owner reply
-                if (result.owner) {
-                    Chat.findById(data.chatId, function(err, chat) {
-                        chat.set({status: 'active'}).save();
-                    });
-                }
-
-                callback({
-                    'statusCode': 200,
-                    'status': 'success',
-                    'data': 'Message added',
-                });
-            });
+		        callback({
+			        'statusCode': 200,
+			        'status': 'success',
+			        'data': 'Message added',
+		        });
+	        });
         });
     });
 };
 
 exports.getWaitingChats = function(data, callback) {
 
+    // find chats with unreadable status
 	Owner.findOne({
 		token: data.token,
 	}).populate({
 		path: 'chats',
 		match: { status: 'unreadable'},
 		select: '_id',
-	}).exec(function(err, owner) {
+	}).exec().then(function(err, owner) {
 
 		callback({
 			'statusCode': 200,
@@ -269,13 +373,14 @@ exports.getWaitingChats = function(data, callback) {
 
 exports.getActiveChats = function(data, callback) {
 
+	// find chats with active status
     Owner.findOne({
         token: data.token,
     }).populate({
         path: 'chats',
         match: { status: 'active'},
         select: '_id',
-    }).exec(function(err, owner) {
+    }).exec().then(function(err, owner) {
 
         callback({
             'statusCode': 200,
@@ -288,27 +393,28 @@ exports.getActiveChats = function(data, callback) {
 // get chat messages by chatId
 exports.getChatMessages = function(data, callback) {
 
+    // try find owner
     Owner.findOne({
         token: data.token,
     }).exec().then(function(owner) {
 
+	    // try find guest
         return Guest.findOne({
             token: data.token,
         }).exec().then(function(guest) {
-            return {owner: owner, guest: guest};
-        }).then(function(result) {
 
-            Chat.findOne({
-                _id: data.chatId,
-                $or: [{owner: result.owner ? result.owner._id : null}, {guest: result.guest ? result.guest._id : null}],
-            }, {messages: {$slice: [data.skip, data.limit]}}).exec().then(function(chat) {
+	        // get chat messages by id for guest or owner
+	        Chat.findOne({
+		        _id: data.chatId,
+		        $or: [{owner: owner ? owner._id : null}, {guest: guest ? guest._id : null}],
+	        }, {messages: {$slice: [data.skip, data.limit]}}).exec().then(function(chat) {
 
-                callback({
-                    'statusCode': 200,
-                    'status': 'success',
-                    'data': chat.messages,
-                });
-            });
+		        callback({
+			        'statusCode': 200,
+			        'status': 'success',
+			        'data': chat.messages,
+		        });
+	        });
         });
     });
 };

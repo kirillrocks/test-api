@@ -1,4 +1,3 @@
-// handlers decencies
 const ChatHandler = require('../chat/handler');
 
 // check connection status
