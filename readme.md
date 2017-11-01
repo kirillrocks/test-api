@@ -1,7 +1,12 @@
 **Run server**
 npm install -g nodemon
+
 npm install (in project folder)
+
 npm run dev (in project folder)
+
+apiPort: 8000 (for login, logout and register)
+chatPort: 8080 (for socket.io actions)
 
 **!important: Before create chat, owner need to be register with domain, than guest can create new chat**
 
