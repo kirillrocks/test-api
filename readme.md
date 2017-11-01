@@ -33,10 +33,6 @@
             }`
 
 ###Api endpoints for chats
-**checkConnection** can call guest/owner
-
-    socket.emit('checkConnection');
-return: connected
 
 **getNewChat** can call guest
 

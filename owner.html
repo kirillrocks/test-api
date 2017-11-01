@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test</title>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+	<script>
+		(function() {
+			let socket = io.connect('http://localhost:8080');
+
+			let chatId = '59f8ccbd6f42412d4cd685f5';
+			let token = '528f3b47c1191f99d008d02774bcc7a4';
+			socket.emit('newMessage', {
+				chatId: chatId,
+				token: token,
+				message: 'hi i am owner'
+			});
+
+			socket.on('newMessage', function(msg) {
+				console.log(msg);
+			});
+		})();
+	</script>
+</head>
+<body>
+
+</body>
+</html>

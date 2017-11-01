@@ -32,13 +32,21 @@ server.register(require('./plugins/socket.io'), function(err) {
 // routes
 server.route(ownersRoutes);
 
-// dev route
+// dev routes
 server.route({
     method: 'GET',
     path: '/guest.html',
     handler: {
         file: 'guest.html'
     }
+});
+
+server.route({
+	method: 'GET',
+	path: '/owner.html',
+	handler: {
+		file: 'owner.html'
+	}
 });
 
 // server start
@@ -51,3 +59,5 @@ server.start(function(err) {
 
     console.log('Server started');
 });
+
+exports.server = server;

@@ -314,13 +314,13 @@ exports.newMessage = function(data, callback) {
 
     // try find owner
     Owner.findOne({
-        'token': data.token,
-        'chats._id': data.chatId,
+        token: data.token,
+        chats: data.chatId,
     }).exec().then(function(owner) {
 
 	    // try find guest
         return Guest.findOne({
-            'token': data.token,
+            token: data.token,
             'chats._id': data.chatId,
         }).exec().then(function(guest) {
 
@@ -336,7 +336,7 @@ exports.newMessage = function(data, callback) {
 		        }).exec().then(function() {
 
 		        // set chat is active when owner reply
-		        if (result.owner) {
+		        if (owner) {
 			        Chat.findById(data.chatId, function(err, chat) {
 				        chat.set({status: 'active'}).save();
 			        });
@@ -345,7 +345,7 @@ exports.newMessage = function(data, callback) {
 		        callback({
 			        'statusCode': 200,
 			        'status': 'success',
-			        'data': 'Message added',
+			        'message': data.message,
 		        });
 	        });
         });

@@ -6,7 +6,6 @@ exports.register = function(server, options, next) {
 
     io.on('connection', function(socket) {
 
-        socket.on('checkConnection', Handlers.checkConnection);
         socket.on('getNewChat', Handlers.getNewChat);
         socket.on('getWaitingChats', Handlers.getWaitingChats);
         socket.on('getActiveChats', Handlers.getActiveChats);
