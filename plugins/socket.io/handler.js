@@ -46,7 +46,7 @@ exports.newMessage = function(data) {
 
     ChatHandler.newMessage(data, function(returnedData) {
         self.emit('newMessage', returnedData);
-	    self.broadcast.emit('newMessage', {message: returnedData.message});
+	    self.broadcast.emit('newMessage', {message: returnedData.data});
     });
 };
 

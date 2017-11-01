@@ -1,3 +1,8 @@
+**Run server**
+npm install -g nodemon
+npm install (in project folder)
+npm run dev (in project folder)
+
 **!important: Before create chat, owner need to be register with domain, than guest can create new chat**
 
 ###Api endpoints for auth chat owner

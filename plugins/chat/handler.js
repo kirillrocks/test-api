@@ -345,7 +345,10 @@ exports.newMessage = function(data, callback) {
 		        callback({
 			        'statusCode': 200,
 			        'status': 'success',
-			        'message': data.message,
+			        'data': {
+				        message: data.message,
+				        from: owner ? owner._id : guest._id
+		            },
 		        });
 	        });
         });
