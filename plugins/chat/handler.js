@@ -320,7 +320,7 @@ exports.newMessage = function(data, callback) {
 
 	    // try find guest
         return Guest.findOne({
-            token: data.token,
+            // token: data.token
             'chats._id': data.chatId,
         }).exec().then(function(guest) {
 
@@ -364,7 +364,7 @@ exports.getWaitingChats = function(data, callback) {
 		path: 'chats',
 		match: { status: 'unreadable'},
 		select: '_id',
-	}).exec().then(function(err, owner) {
+	}).exec().then(function(owner) {
 
 		callback({
 			'statusCode': 200,
@@ -383,7 +383,7 @@ exports.getActiveChats = function(data, callback) {
         path: 'chats',
         match: { status: 'active'},
         select: '_id',
-    }).exec().then(function(err, owner) {
+    }).exec().then(function(owner) {
 
         callback({
             'statusCode': 200,
@@ -396,28 +396,15 @@ exports.getActiveChats = function(data, callback) {
 // get chat messages by chatId
 exports.getChatMessages = function(data, callback) {
 
-    // try find owner
-    Owner.findOne({
-        token: data.token,
-    }).exec().then(function(owner) {
-
-	    // try find guest
-        return Guest.findOne({
-            token: data.token,
-        }).exec().then(function(guest) {
-
-	        // get chat messages by id for guest or owner
-	        Chat.findOne({
-		        _id: data.chatId,
-		        $or: [{owner: owner ? owner._id : null}, {guest: guest ? guest._id : null}],
-	        }, {messages: {$slice: [data.skip, data.limit]}}).exec().then(function(chat) {
-
-		        callback({
-			        'statusCode': 200,
-			        'status': 'success',
-			        'data': chat.messages,
-		        });
-	        });
+    Chat.findOne({
+        _id: data.chatId
+    }).exec().then(function(chat){
+        console.log('getChatMessages 2', chat)
+        callback({
+            'statusCode': 200,
+            'status': 'success',
+            'data': chat.messages,
         });
-    });
+    })
+
 };
